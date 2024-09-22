@@ -1,1 +1,60 @@
-o
+from collections import deque
+
+class State:
+    def __init__(self, stacks):
+        self.stacks = stacks
+
+    def __str__(self):
+        return str(self.stacks)
+
+    def is_goal(self, goal):
+        return self.stacks == goal.stacks
+
+    def get_possible_moves(self):
+        moves = []
+        for i, stack in enumerate(self.stacks):
+            if stack:  # Only consider non-empty stacks
+                top_block = stack[-1]
+                # Move the top block to another stack
+                for j, other_stack in enumerate(self.stacks):
+                    if i != j:  # Can't move to the same stack
+                        new_stacks = [s[:] for s in self.stacks]  # Copy stacks
+                        new_stacks[i] = new_stacks[i][:-1]  # Remove top block from current stack
+                        new_stacks[j].append(top_block)  # Add to other stack
+                        moves.append((State(new_stacks), f'Move {top_block} from stack {i} to stack {j}'))  # Include action
+        return moves
+
+def bfs(initial_state, goal_state):
+    queue = deque([(initial_state, [])])  # Store state along with path of actions
+    visited = set()
+
+    while queue:
+        current_state, actions = queue.popleft()
+        if current_state.is_goal(goal_state):
+            return current_state, actions  # Return both state and actions
+
+        visited.add(str(current_state))
+
+        for move, action in current_state.get_possible_moves():
+            if str(move) not in visited:
+                queue.append((move, actions + [action]))  # Add the new action to the path
+
+    return None  # No solution found
+
+# Define the initial and goal states
+initial_stacks = [['B', 'A'], ['C'], ['D']]
+goal_stacks = [['C', 'A'], [], ['B', 'D']]
+
+initial_state = State(initial_stacks)
+goal_state = State(goal_stacks)
+
+# Find the solution
+solution, actions = bfs(initial_state, goal_state)
+
+if solution:
+    print("Solution found:", solution)
+    print("Actions taken:")
+    for action in actions:
+        print(action)
+else:
+    print("No solution found.")
