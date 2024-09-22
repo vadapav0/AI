@@ -1,0 +1,50 @@
+import random
+import numpy as np
+
+distance_matrix = np.array([[0, 20, 42, 35], 
+                             [20, 0, 30, 34], 
+                             [42, 30, 0, 12], 
+                             [35, 34, 12, 0]])
+
+def calculate_distance(tour):
+    total_distance = sum(distance_matrix[tour[i], tour[i + 1]] for i in range(len(tour) - 1))
+    total_distance += distance_matrix[tour[-1], tour[0]]
+    return total_distance
+
+def create_random_tour(num_cities):
+    tour = list(range(num_cities))
+    random.shuffle(tour)
+    return tour
+
+def mutate(tour):
+    a, b = random.sample(range(len(tour)), 2)
+    tour[a], tour[b] = tour[b], tour[a]
+
+def crossover(parent1, parent2):
+    start, end = sorted(random.sample(range(len(parent1)), 2))
+    child = [None] * len(parent1)
+    child[start:end] = parent1[start:end]
+    current_pos = end % len(parent1)
+    for city in parent2:
+        if city not in child:
+            child[current_pos] = city
+            current_pos = (current_pos + 1) % len(parent1)
+    return child
+
+def genetic_algorithm(num_cities, population_size, generations):
+    population = [create_random_tour(num_cities) for _ in range(population_size)]
+    for _ in range(generations):
+        population = sorted(population, key=calculate_distance)
+        next_generation = population[:2]  # Elitism: carry forward the best tours
+        while len(next_generation) < population_size:
+            parent1, parent2 = random.choices(population[:population_size // 2], k=2)
+            child = crossover(parent1, parent2)
+            if random.random() < 0.1:  # Mutation probability
+                mutate(child)
+            next_generation.append(child)
+        population = next_generation
+    best_tour = min(population, key=calculate_distance)
+    return best_tour, calculate_distance(best_tour)
+
+best_tour, best_distance = genetic_algorithm(num_cities=4, population_size=100, generations=1000)
+print(f"Best Tour: {best_tour}, Distance: {best_distance}")
