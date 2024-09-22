@@ -1,0 +1,18 @@
+def associative_addition(a, b, c): 
+    left_associative = (a + b) + c 
+    right_associative = a + (b + c) 
+    print(f"Left associative (a + b) + c: {left_associative}") 
+    print(f"Right associative a + (b + c): {right_associative}") 
+    return left_associative == right_associative 
+
+def associative_multiplication(a, b, c): 
+    left_associative = (a * b) * c 
+    right_associative = a * (b * c) 
+    print(f"Left associative (a * b) * c: {left_associative}") 
+    print(f"Right associative a * (b * c): {right_associative}") 
+    return left_associative == right_associative 
+
+a, b, c = 5, 6, 7 
+
+print("Addition is associative:", associative_addition(a, b, c)) 
+print("Multiplication is associative:", associative_multiplication(a, b, c))
