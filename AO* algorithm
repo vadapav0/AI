@@ -1,0 +1,87 @@
+class Node:
+    def __init__(self, name, is_goal=False):
+        self.name = name
+        self.is_goal = is_goal
+        self.successors = []
+        self.cost = float('inf')
+        self.best_successor = None
+        self.visited = False
+
+    def add_successor(self, successor, relation='OR', cost=1):
+        self.successors.append((successor, relation, cost))
+
+
+class AOStarAlgorithm:
+    def __init__(self):
+        self.nodes = {}
+
+    def add_node(self, name, is_goal=False):
+        node = Node(name, is_goal)
+        self.nodes[name] = node
+
+    def add_edge(self, from_node, to_node, relation='OR', cost=1):
+        self.nodes[from_node].add_successor(self.nodes[to_node], relation, cost)
+
+    def search(self, start_node):
+        node = self.nodes[start_node]
+        self.ao_star_util(node)
+
+    def ao_star_util(self, node):
+        if node.is_goal:
+            node.cost = 0
+            return node.cost
+
+        if node.visited:
+            return node.cost
+
+        node.visited = True
+        min_cost = float('inf')
+        best_successor = None
+
+        for successor, relation, cost in node.successors:
+            if relation == 'OR':
+                current_cost = self.ao_star_util(successor) + cost
+                if current_cost < min_cost:
+                    min_cost = current_cost
+                    best_successor = (successor, relation)
+            elif relation == 'AND':
+                current_cost = cost
+                for and_successor, _, and_cost in successor.successors:
+                    current_cost += self.ao_star_util(and_successor)
+                if current_cost < min_cost:
+                    min_cost = current_cost
+                    best_successor = (successor, relation)
+
+        node.cost = min_cost
+        node.best_successor = best_successor
+        return node.cost
+
+    def print_solution(self, node_name):
+        node = self.nodes[node_name]
+        if node.is_goal:
+            print(f"Goal node: {node.name}")
+            return
+
+        if node.best_successor:
+            print(f"Node: {node.name} -> Successor: {node.best_successor[0].name} via {node.best_successor[1]} relation")
+            self.print_solution(node.best_successor[0].name)
+
+
+# Test the AO* algorithm
+if __name__ == "__main__":
+    ao_star = AOStarAlgorithm()
+    
+    # Define nodes
+    ao_star.add_node('A')
+    ao_star.add_node('B', is_goal=True)
+    ao_star.add_node('C')
+    ao_star.add_node('D', is_goal=True)
+    
+    # Define edges (relations between nodes)
+    ao_star.add_edge('A', 'B', 'OR', 4)
+    ao_star.add_edge('A', 'C', 'OR', 2)
+    ao_star.add_edge('C', 'D', 'OR', 1)
+    
+    # Perform AO* search and print the solution
+    ao_star.search('A')
+    ao_star.print_solution('A')
