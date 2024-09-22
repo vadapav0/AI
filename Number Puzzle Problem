@@ -1,0 +1,87 @@
+import heapq
+
+def print_board(board):
+    for row in board:
+        print(" ".join(str(cell) for cell in row))
+    print()
+
+def manhattan_distance(board, goal):
+    distance = 0
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == 0:
+                continue
+            x, y = divmod(goal.index(board[i][j]), 3)
+            distance += abs(x - i) + abs(y - j)
+    return distance
+
+def is_solved(board, goal):
+    return board == goal
+
+def generate_successors(board):
+    successors = []
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == 0:
+                x, y = i, j
+                break
+    moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    for move in moves:
+        new_x, new_y = x + move[0], y + move[1]
+        if 0 <= new_x < 3 and 0 <= new_y < 3:
+            new_board = [row[:] for row in board]
+            new_board[x][y], new_board[new_x][new_y] = new_board[new_x][new_y], new_board[x][y]
+            successors.append(new_board)
+    return successors
+
+def a_star(start, goal):
+    priority_queue = []
+    heapq.heappush(priority_queue, (0, start, []))
+    visited = set()
+    
+    while priority_queue:
+        _, current_board, path = heapq.heappop(priority_queue)
+        
+        if is_solved(current_board, goal):
+            return path + [current_board]
+        
+        board_tuple = tuple(tuple(row) for row in current_board)
+        if board_tuple in visited:
+            continue
+        visited.add(board_tuple)
+
+        for successor in generate_successors(current_board):
+            new_path = path + [current_board]
+            priority = len(new_path) + manhattan_distance(successor, sum(goal, []))
+            heapq.heappush(priority_queue, (priority, successor, new_path))
+
+    return None
+
+def solve_puzzle(start_board, goal_board):
+    print("Initial board:")
+    print_board(start_board)
+    print("Goal board:")
+    print_board(goal_board)
+    
+    solution = a_star(start_board, goal_board)
+    
+    if solution:
+        print("Solution found in {} moves!".format(len(solution) - 1))
+        for step, board in enumerate(solution):
+            print(f"Step {step}:")
+            print_board(board)
+    else:
+        print("No solution found.")
+
+if __name__ == "__main__":
+    start_board = [
+        [4, 5, 7],
+        [8, 1, 2],
+        [3, 6, 0]
+    ]
+    goal_board = [
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 0]
+    ]
+    solve_puzzle(start_board, goal_board)
