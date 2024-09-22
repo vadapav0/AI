@@ -1,0 +1,63 @@
+from collections import deque
+
+def is_valid_state(missionaries, cannibals):
+    if missionaries < 0 or cannibals < 0 or missionaries > 3 or cannibals > 3:
+        return False
+    if missionaries > 0 and missionaries < cannibals:
+        return False
+    if (3 - missionaries) > 0 and (3 - missionaries) < (3 - cannibals):
+        return False
+    return True
+
+def generate_successors(state):
+    successors = []
+    m, c, boat = state
+    moves = [(1, 0), (2, 0), (0, 1), (0, 2), (1, 1)]  # possible moves
+
+    if boat == 1:  # boat on the left side
+        for move in moves:
+            new_m, new_c = m - move[0], c - move[1]
+            if is_valid_state(new_m, new_c):
+                successors.append((new_m, new_c, 0))  # move boat to right
+    else:  # boat on the right side
+        for move in moves:
+            new_m, new_c = m + move[0], c + move[1]
+            if is_valid_state(new_m, new_c):
+                successors.append((new_m, new_c, 1))  # move boat to left
+
+    return successors
+
+def missionaries_and_cannibals():
+    start_state = (3, 3, 1)  # (missionaries, cannibals, boat position)
+    goal_state = (0, 0, 0)
+    queue = deque([(start_state, [])])
+    visited = set()
+
+    while queue:
+        state, path = queue.popleft()
+        if state in visited:
+            continue
+        visited.add(state)
+
+        if state == goal_state:
+            return path + [state]
+
+        for successor in generate_successors(state):
+            queue.append((successor, path + [state]))
+
+    return None
+
+def print_solution(solution):
+    if not solution:
+        print("No solution found.")
+        return
+
+    print("Solution path:")
+    for step in solution:
+        m, c, b = step
+        boat_position = "Left" if b == 1 else "Right"
+        print(f"Missionaries: {m}, Cannibals: {c}, Boat: {boat_position}")
+
+if __name__ == "__main__":
+    solution = missionaries_and_cannibals()
+    print_solution(solution)
